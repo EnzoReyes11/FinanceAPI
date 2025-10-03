@@ -5,9 +5,10 @@ See [Design document](Ahttps://docs.google.com/document/d/1xcD04pmzbedeWVP7bYmZX
 Moving Users routes from main.py into users/routes.
 #### Done:
 - Fixed many pylance errors. Improved types and reduced code.
-- Continued trimmed code out of main into Auth, User or dependecies.
+- Trimmed code out of main into Auth, User or dependecies.
 - Introduced dotenv, refactored secrets.
 - Introducing WORKLOG.md
+- Added LICENSE
 
 #### Follow up
 - Fill: Create user (POST /user/)
