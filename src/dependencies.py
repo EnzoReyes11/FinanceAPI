@@ -32,7 +32,7 @@ class TokenData(BaseModel):
     username: str 
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 
 def get_user(db: FakeDB, username: str) -> UserInDB | None:
