@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'WORKLOG.md'
+      - 'PROJECT.md'
 
 jobs:
   sync_worklog_file:
