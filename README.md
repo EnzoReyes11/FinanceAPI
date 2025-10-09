@@ -1,4 +1,3 @@
-
 # Financial Tracker API
 
 This service is part of a Personal Financial Investments Tracking suite.  
