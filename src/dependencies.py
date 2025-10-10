@@ -2,7 +2,9 @@ import os
 
 from dotenv import load_dotenv
 from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel
+
+from .users.schemas import UserInDB
 
 load_dotenv()
 
@@ -12,16 +14,8 @@ ALGORITHM = os.getenv('ALGORITHM') or 'HS256'
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES') or 30)
 
 
-class User(BaseModel):
-    username: str = Field(title = "Username for the user", min_length=4)
-    email: EmailStr = Field(title = "Email for the user", min_length=4)
-    full_name: str | None = None
-    disabled: bool | None = None
-
 type FakeDB = dict[str, UserInDB] 
 
-class UserInDB(User):
-    hashed_password: str
 
 class Token(BaseModel):
     access_token: str

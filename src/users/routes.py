@@ -2,24 +2,28 @@ from typing import Annotated, Any
 
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
+from sqlalchemy.orm import Session
 
+from ..database import get_db
 from ..dependencies import (
     ALGORITHM,
     SECRET_KEY,
     TokenData,
-    User,
     fake_users_db,
     get_user,
-    oauth2_scheme,
 )
+from . import schemas, service
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 router = APIRouter(
-    prefix="/user",   
-    tags=["User"]    
+    prefix="/users",  # Using plural for resource routes is a common convention
+    tags=["Users"],
 )
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -40,31 +44,31 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
 
 
 async def get_current_active_user(
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
 ):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
+@router.post("/", response_model=schemas.User, status_code=status.HTTP_201_CREATED)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    """
+    Create a new user in the database.
+    """
+    db_user_by_email = service.get_user_by_email(db, email=user.email)
+    if db_user_by_email:
+        raise HTTPException(status_code=400, detail="Email already registered")
 
-@router.get("/", response_model=list[User])
-async def read_users_all(current_user: Annotated[User, Depends(get_current_user)]):
-    users = list(fake_users_db.values())
+    db_user_by_username = service.get_user_by_username(db, username=user.username)
+    if db_user_by_username:
+        raise HTTPException(status_code=400, detail="Username already registered")
 
-    return users
+    return service.create_user(db=db, user=user)
 
-
-@router.post("/")
-async def new_user(user: User):
-    return user
-
-
-@router.get("/me", response_model=User)
-async def read_users_me(current_user: Annotated[User, Depends(get_current_active_user)]):
+@router.get("/me", response_model=schemas.User)
+async def read_users_me(current_user: Annotated[schemas.User, Depends(get_current_active_user)]):
     return current_user
-    
 
 @router.get("/{user_id}")
-async def read_user(user_id: int, current_user: Annotated[User, Depends(get_current_user)]):
-    return {"message": "Some user" }
-
+async def read_user(user_id: int, current_user: Annotated[schemas.User, Depends(get_current_user)]):
+    return {"message": "Some user"}
